@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generate PWA Icons</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #242424;
+      color: #fff;
+    }
+    h1 { color: #646cff; }
+    .canvas-container {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin: 20px 0;
+    }
+    canvas {
+      border: 2px solid #646cff;
+      border-radius: 8px;
+    }
+    button {
+      background: #646cff;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 5px;
+    }
+    button:hover {
+      background: #535bf2;
+    }
+    .info {
+      background: #1a1a1a;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎨 PWA Icon Generator</h1>
+  
+  <div class="info">
+    <p><strong>Instructions:</strong></p>
+    <ol>
+      <li>The icons below are auto-generated with a simple timer design</li>
+      <li>Click the download buttons to save each icon</li>
+      <li>Place them in the <code>/public</code> folder</li>
+      <li>Or upload your own logo and it will generate icons from it</li>
+    </ol>
+    <input type="file" id="logoUpload" accept="image/*" style="margin-top: 10px;">
+  </div>
+
+  <div class="canvas-container">
+    <div>
+      <h3>192x192</h3>
+      <canvas id="canvas192" width="192" height="192"></canvas>
+      <br>
+      <button onclick="download(192)">Download 192x192</button>
+    </div>
+    <div>
+      <h3>512x512</h3>
+      <canvas id="canvas512" width="512" height="512"></canvas>
+      <br>
+      <button onclick="download(512)">Download 512x512</button>
+    </div>
+    <div>
+      <h3>180x180 (Apple)</h3>
+      <canvas id="canvas180" width="180" height="180"></canvas>
+      <br>
+      <button onclick="download(180, 'apple-touch-icon')">Download Apple Icon</button>
+    </div>
+  </div>
+
+  <script>
+    function drawIcon(canvas, size) {
+      const ctx = canvas.getContext('2d');
+      const center = size / 2;
+      
+      // Background
+      ctx.fillStyle = '#242424';
+      ctx.fillRect(0, 0, size, size);
+      
+      // Outer circle
+      ctx.strokeStyle = '#646cff';
+      ctx.lineWidth = size * 0.04;
+      ctx.beginPath();
+      ctx.arc(center, center, size * 0.35, 0, Math.PI * 2);
+      ctx.stroke();
+      
+      // Inner circle
+      ctx.fillStyle = '#646cff';
+      ctx.beginPath();
+      ctx.arc(center, center, size * 0.15, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Clock hands
+      ctx.strokeStyle = '#242424';
+      ctx.lineWidth = size * 0.03;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      
+      // Hour hand
+      ctx.beginPath();
+      ctx.moveTo(center, center);
+      ctx.lineTo(center, center - size * 0.15);
+      ctx.stroke();
+      
+      // Minute hand
+      ctx.beginPath();
+      ctx.moveTo(center, center);
+      ctx.lineTo(center + size * 0.12, center + size * 0.12);
+      ctx.stroke();
+    }
+
+    function drawFromImage(img) {
+      [192, 512, 180].forEach(size => {
+        const canvas = document.getElementById(`canvas${size}`);
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, size, size);
+        ctx.drawImage(img, 0, 0, size, size);
+      });
+    }
+
+    // Initial draw
+    drawIcon(document.getElementById('canvas192'), 192);
+    drawIcon(document.getElementById('canvas512'), 512);
+    drawIcon(document.getElementById('canvas180'), 180);
+
+    // Logo upload
+    document.getElementById('logoUpload').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const img = new Image();
+          img.onload = () => drawFromImage(img);
+          img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    function download(size, name = null) {
+      const canvas = document.getElementById(`canvas${size}`);
+      const link = document.createElement('a');
+      link.download = name || `pwa-${size}x${size}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+  </script>
+</body>
+</html>
