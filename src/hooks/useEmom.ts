@@ -2,11 +2,12 @@ import { useEffect, useState } from 'react'
 import { useAudio } from './useAudio'
 
 export const useEmom = () => {
+  const SECONDS_IN_MINUTE = 60
+  const TIME_GRANULARITY = 1000 // 1 second
   const [duration, setDuration] = useState(10)
   const [currentMinute, setCurrentMinute] = useState(1)
-  const [timeInMinute, setTimeInMinute] = useState(60)
+  const [timeInMinute, setTimeInMinute] = useState(SECONDS_IN_MINUTE)
   const [isRunning, setIsRunning] = useState(false)
-  const TIME_GRANULARITY = 1000 // 1 second
 
   const { playSound } = useAudio()
   const handleStart = () => {
@@ -20,7 +21,7 @@ export const useEmom = () => {
   const handleReset = () => {
     setIsRunning(false)
     setCurrentMinute(1)
-    setTimeInMinute(60)
+    setTimeInMinute(SECONDS_IN_MINUTE)
   }
 
   const handleUpdateDuration = (newDuration: number) => {
@@ -29,34 +30,30 @@ export const useEmom = () => {
 
   useEffect(() => {
     let interval: number | undefined
-
-    if (isRunning && timeInMinute > 0) {
+    if (isRunning) {
       interval = window.setInterval(() => {
-        setTimeInMinute((prev) => {
-          if (prev >= 0 && prev < 6) {
-            playSound()
+        if (timeInMinute <= 5) {
+          playSound()
+        }
+        if (timeInMinute > 0) {
+          setTimeInMinute((prev) => prev - 1)
+        }
+        if (timeInMinute === 0) {
+          if (currentMinute < duration) {
+            setCurrentMinute((m) => m + 1)
+            setTimeInMinute(SECONDS_IN_MINUTE)
+          } else {
+            setIsRunning(false)
           }
-          if (prev === 1) {
-            // Play sound when round finishes
-            // Move to next minute
-            if (currentMinute < duration) {
-              setCurrentMinute((m) => m + 1)
-              return 60
-            } else {
-              // Workout complete
-              setIsRunning(false)
-              return 0
-            }
-          }
-          return prev - 1
-        })
+        }
       }, TIME_GRANULARITY)
     }
-
     return () => {
       if (interval) clearInterval(interval)
     }
-  }, [isRunning, timeInMinute, currentMinute, duration, playSound])
+  }, [duration, isRunning, timeInMinute, currentMinute, playSound])
+
+
 
   return {
     duration,

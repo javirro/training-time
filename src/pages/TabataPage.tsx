@@ -18,43 +18,43 @@ const TabataPage = () => {
 
   useEffect(() => {
     let interval: number | undefined
-
     if (isRunning) {
       interval = setInterval(() => {
-        setTimeRemaining((prev) => {
-          if (prev > 1) {
-            if (prev <= 6) playSound() // Play sound when time is about to run out
-            return prev - 1
-          }
+        if (isWorkPhase && timeRemaining <= 5) {
+          playSound()
+        } else if (!isWorkPhase && timeRemaining <= 3) {
+          playSound()
+        }
 
+        if (timeRemaining > 0) {
+          setTimeRemaining((prev) => prev - 1)
+        } else {
           // Timer reached 0, handle phase transitions
           if (isWorkPhase) {
             // Work phase finished, switch to rest phase
-            playSound()
             setIsWorkPhase(false)
-            return restTime
+            setTimeRemaining(restTime)
           } else {
             // Rest phase finished
-            playSound()
             if (currentRound < totalRounds) {
               // Move to next round
               setIsWorkPhase(true)
               setCurrentRound((r) => r + 1)
-              return workTime
+              setTimeRemaining(workTime)
             } else {
               // Workout complete
               setIsRunning(false)
-              return 0
             }
           }
-        })
+        }
       }, 1000)
     }
 
     return () => {
       if (interval) clearInterval(interval)
     }
-  }, [isRunning, isWorkPhase, currentRound, totalRounds, workTime, restTime, playSound])
+  }, [workTime, restTime, totalRounds, timeRemaining, isRunning, isWorkPhase, currentRound, playSound])
+
 
   const handleStart = () => {
     setShowCountdown(true)
