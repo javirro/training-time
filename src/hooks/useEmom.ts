@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 
 export const useEmom = () => {
   const [duration, setDuration] = useState(10)
@@ -6,6 +6,24 @@ export const useEmom = () => {
   const [timeInMinute, setTimeInMinute] = useState(60)
   const [isRunning, setIsRunning] = useState(false)
   const TIME_GRANULARITY = 1000 // 1 second
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+
+  // Initialize audio
+  useEffect(() => {
+    // Create audio context with a beep sound
+    audioRef.current = new Audio()
+    audioRef.current.src = 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBjiQ1PDImSwGJHfH79yNPwoUXLPp7axXFQpGn+Dxv28hBTiQ1PDImSwGJHfH79yNPwoUXLPp7axXFQpGn+Dx'
+    audioRef.current.volume = 0.3
+  }, [])
+
+  const playSound = () => {
+    if (audioRef.current) {
+      audioRef.current.currentTime = 0
+      audioRef.current.play().catch(() => {
+        // Ignore errors if user hasn't interacted with page yet
+      })
+    }
+  }
   const handleStart = () => {
     setIsRunning(true)
   }
@@ -31,6 +49,8 @@ export const useEmom = () => {
       interval = window.setInterval(() => {
         setTimeInMinute((prev) => {
           if (prev === 1) {
+            // Play sound when round finishes
+            playSound()
             // Move to next minute
             if (currentMinute < duration) {
               setCurrentMinute((m) => m + 1)
