@@ -15,12 +15,12 @@ export default defineConfig({
         name: 'Training Timer',
         short_name: 'Timer',
         description: 'Mobile-first training timer application',
-        theme_color: '#242424',
-        background_color: '#242424',
+        theme_color: '#1a1f1a',
+        background_color: '#1a1f1a',
         display: 'standalone',
         orientation: 'portrait',
         scope: '/',
-        start_url: '/',
+        start_url: '/',,
         icons: [
           {
             src: 'pwa-192x192.png',
