@@ -66,7 +66,7 @@ const TabataPage = () => {
     currentRound === totalRounds && !isWorkPhase && timeRemaining === 0
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-6 p-4 sm:p-8">
+    <div className="flex min-h-screen flex-col items-center gap-6 p-4 sm:p-8">
       <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-center text-[#4ade80]">
         TABATA
       </h1>
@@ -122,20 +122,6 @@ const TabataPage = () => {
           </button>
         </div>
 
-        {/* Progress bar */}
-        <div className="w-full bg-[#2d342d] rounded-full h-3 overflow-hidden border border-[#384038]">
-          <div
-            className={`h-full transition-all duration-1000 ${
-              isWorkPhase ? 'bg-[#4ade80]' : 'bg-[#fbbf24]'
-            }`}
-            style={{
-              width: `${
-                ((currentRound - 1) / totalRounds) * 100 +
-                (isWorkPhase ? 0 : 50 / totalRounds)
-              }%`,
-            }}
-          />
-        </div>
       </div>
     </div>
   )

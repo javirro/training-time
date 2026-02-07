@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react'
+import { formatTimeToShow } from '../lib/formatTimeToShow'
+import HeaderPageTraining from '../components/HeaderPageTraining'
 
 const AmrapPage = () => {
   const [timeLimit, setTimeLimit] = useState(10)
@@ -22,12 +24,6 @@ const AmrapPage = () => {
     }
   }, [isRunning, timeRemaining])
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60)
-    const secs = seconds % 60
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
-  }
-
   const handleStart = () => {
     setIsRunning(true)
   }
@@ -47,16 +43,15 @@ const AmrapPage = () => {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-6 p-4 sm:p-8">
-      <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-center text-[#4ade80]">AMRAP</h1>
-      <p className="text-sm sm:text-base text-[#9ca89c] text-center max-w-md">
-        As Many Rounds As Possible - Complete as many rounds within the time limit
-      </p>
+    <div className="flex min-h-screen flex-col items-center  gap-6 p-4 sm:p-8">
+      <HeaderPageTraining />
 
       {!isRunning && timeRemaining === timeLimit * 60 && (
         <div className="flex flex-col gap-4 items-center">
           <label className="flex flex-col gap-2 text-center">
-            <span className="text-sm sm:text-base text-[#d1d9d1]">Time Limit (minutes)</span>
+            <span className="text-sm sm:text-base text-[#d1d9d1]">
+              Time Limit (minutes)
+            </span>
             <input
               type="number"
               min="1"
@@ -75,7 +70,7 @@ const AmrapPage = () => {
 
       <div className="flex flex-col items-center gap-6 w-full max-w-md">
         <div className="text-6xl sm:text-7xl font-bold text-[#4ade80] tabular-nums">
-          {formatTime(timeRemaining)}
+          {formatTimeToShow(timeRemaining)}
         </div>
 
         <div className="text-4xl sm:text-5xl font-bold text-[#f0f4f0]">

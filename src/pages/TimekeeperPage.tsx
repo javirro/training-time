@@ -1,63 +1,23 @@
-import { useState, useEffect } from 'react'
+import HeaderPageTraining from '../components/HeaderPageTraining'
+import { useTimeKeeper } from '../hooks/useTimeKeeper'
+import { formatTimeToShow } from '../lib/formatTimeToShow'
 
 const TimekeeperPage = () => {
-  const [time, setTime] = useState(0)
-  const [isRunning, setIsRunning] = useState(false)
-
-  useEffect(() => {
-    let interval: number | undefined
-
-    if (isRunning) {
-      interval = window.setInterval(() => {
-        setTime((prev) => prev + 1)
-      }, 1000)
-    }
-
-    return () => {
-      if (interval) clearInterval(interval)
-    }
-  }, [isRunning])
-
-  const formatTime = (seconds: number) => {
-    const hrs = Math.floor(seconds / 3600)
-    const mins = Math.floor((seconds % 3600) / 60)
-    const secs = seconds % 60
-
-    if (hrs > 0) {
-      return `${hrs.toString().padStart(2, '0')}:${mins
-        .toString()
-        .padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
-    }
-    return `${mins.toString().padStart(2, '0')}:${secs
-      .toString()
-      .padStart(2, '0')}`
-  }
-
-  const handleStart = () => {
-    setIsRunning(true)
-  }
-
-  const handlePause = () => {
-    setIsRunning(false)
-  }
-
-  const handleReset = () => {
-    setIsRunning(false)
-    setTime(0)
-  }
+  const {
+    time,
+    isRunning,
+    handleStart,
+    handlePause,
+    handleReset,
+  } = useTimeKeeper()
 
   return (
-    <div className="flex min-h-screen flex-col items-center gap-6 p-4 sm:p-8">
-      <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-center text-[#4ade80]">
-        TIMEKEEPER
-      </h1>
-      <p className="text-sm sm:text-base text-[#9ca89c] text-center max-w-md">
-        Track the duration of your workout
-      </p>
+    <div className="flex min-h-screen flex-col items-center gap-6 p-4 sm:p-8 bg-[#1a1f1a]">
+      <HeaderPageTraining />
 
       <div className="flex flex-col items-center gap-8 w-full max-w-md">
         <div className="text-6xl sm:text-7xl md:text-8xl font-bold text-[#4ade80] tabular-nums">
-          {formatTime(time)}
+          {formatTimeToShow(time)}
         </div>
 
         <div className="flex gap-4 flex-wrap justify-center">
