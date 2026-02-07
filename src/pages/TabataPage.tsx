@@ -128,7 +128,7 @@ const TabataPage = () => {
         </div>
 
         <div
-          className={`text-7xl sm:text-8xl font-bold tabular-nums transition-colors ${
+          className={`text-9xl font-bold tabular-nums transition-colors ${
             isWorkPhase ? 'text-[#4ade80]' : 'text-[#fbbf24]'
           }`}
         >

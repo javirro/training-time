@@ -2,6 +2,7 @@ import { formatTimeToShow } from '../lib/formatTimeToShow'
 import HeaderPageTraining from '../components/HeaderPageTraining'
 import { useAmramp } from '../hooks/useAmramp'
 import { PauseButton, ResetButton, StartButton } from '../components/Buttons'
+import TimeShow from '../components/TimeShow'
 
 const AmrapPage = () => {
   const {
@@ -21,9 +22,9 @@ const AmrapPage = () => {
       <HeaderPageTraining />
 
       {!isRunning && timeRemaining === timeLimit * 60 && (
-        <div className="flex flex-col gap-4 items-center">
+        <div className="flex flex-col gap-4 items-center w-[60%]">
           <label className="flex flex-col gap-2 text-center">
-            <span className="text-sm sm:text-base text-[#d1d9d1]">
+            <span className="text-base text-[#d1d9d1]">
               Time Limit (minutes)
             </span>
             <input
@@ -35,16 +36,14 @@ const AmrapPage = () => {
                 const val = parseInt(e.target.value) || 1
                 handleUpdateTimeLimit(val)
               }}
-              className="px-4 py-3 bg-[#2d342d] text-[#f0f4f0] rounded-lg text-center text-xl w-24 focus:outline-none focus:ring-2 focus:ring-[#4ade80] border border-[#384038]"
+              className="w-full sm:w-xl px-4 py-3 bg-[#2d342d] text-[#f0f4f0] rounded-lg text-center text-xl  focus:outline-none focus:ring-2 focus:ring-[#4ade80] border border-[#384038]"
             />
           </label>
         </div>
       )}
 
       <div className="flex flex-col items-center gap-6 w-full max-w-md">
-        <div className="text-6xl sm:text-7xl font-bold text-[#4ade80] tabular-nums">
-          {formatTimeToShow(timeRemaining)}
-        </div>
+        <TimeShow time={formatTimeToShow(timeRemaining)} />
 
         <div className="text-4xl sm:text-5xl font-bold text-[#f0f4f0]">
           Rounds: <span className="text-[#4ade80]">{rounds}</span>
