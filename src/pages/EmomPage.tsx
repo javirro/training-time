@@ -1,3 +1,4 @@
+import { PauseButton, ResetButton, StartButton } from '../components/Buttons'
 import HeaderPageTraining from '../components/HeaderPageTraining'
 import { useEmom } from '../hooks/useEmom'
 
@@ -58,26 +59,12 @@ const EmomPage = () => {
 
         <div className="flex gap-4 flex-wrap justify-center">
           {!isRunning ? (
-            <button
-              onClick={handleStart}
-              className="px-8 py-4 bg-[#22c55e] text-white rounded-lg hover:bg-[#4ade80] active:scale-95 transition-all text-lg font-semibold min-w-[120px] shadow-lg shadow-green-900/20"
-            >
-              {isComplete ? 'Restart' : 'Start'}
-            </button>
+            <StartButton onClick={handleStart} />
           ) : (
-            <button
-              onClick={handlePause}
-              className="px-8 py-4 bg-[#fbbf24] text-[#1a1f1a] rounded-lg hover:bg-[#fcd34d] active:scale-95 transition-all text-lg font-semibold min-w-[120px] shadow-lg"
-            >
-              Pause
-            </button>
+            <PauseButton onClick={handlePause} />
           )}
-          <button
-            onClick={handleReset}
-            className="px-8 py-4 bg-[#384038] text-[#f0f4f0] rounded-lg hover:bg-[#434d43] active:scale-95 transition-all text-lg font-semibold min-w-[120px]"
-          >
-            Reset
-          </button>
+
+          <ResetButton onClick={handleReset} />
         </div>
 
         {timeInMinute <= 5 && isRunning && (

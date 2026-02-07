@@ -1,46 +1,20 @@
-import { useState, useEffect } from 'react'
 import { formatTimeToShow } from '../lib/formatTimeToShow'
 import HeaderPageTraining from '../components/HeaderPageTraining'
+import { useAmramp } from '../hooks/useAmramp'
+import { PauseButton, ResetButton, StartButton } from '../components/Buttons'
 
 const AmrapPage = () => {
-  const [timeLimit, setTimeLimit] = useState(10)
-  const [timeRemaining, setTimeRemaining] = useState(timeLimit * 60)
-  const [isRunning, setIsRunning] = useState(false)
-  const [rounds, setRounds] = useState(0)
-
-  useEffect(() => {
-    let interval: number | undefined
-
-    if (isRunning && timeRemaining > 0) {
-      interval = window.setInterval(() => {
-        setTimeRemaining((prev) => prev - 1)
-      }, 1000)
-    } else if (timeRemaining === 0) {
-      setIsRunning(false)
-    }
-
-    return () => {
-      if (interval) clearInterval(interval)
-    }
-  }, [isRunning, timeRemaining])
-
-  const handleStart = () => {
-    setIsRunning(true)
-  }
-
-  const handlePause = () => {
-    setIsRunning(false)
-  }
-
-  const handleReset = () => {
-    setIsRunning(false)
-    setTimeRemaining(timeLimit * 60)
-    setRounds(0)
-  }
-
-  const handleRoundComplete = () => {
-    setRounds((prev) => prev + 1)
-  }
+  const {
+    timeLimit,
+    timeRemaining,
+    isRunning,
+    rounds,
+    handleStart,
+    handlePause,
+    handleReset,
+    handleRoundComplete,
+    handleUpdateTimeLimit,
+  } = useAmramp()
 
   return (
     <div className="flex min-h-screen flex-col items-center  gap-6 p-4 sm:p-8">
@@ -59,8 +33,7 @@ const AmrapPage = () => {
               value={timeLimit}
               onChange={(e) => {
                 const val = parseInt(e.target.value) || 1
-                setTimeLimit(val)
-                setTimeRemaining(val * 60)
+                handleUpdateTimeLimit(val)
               }}
               className="px-4 py-3 bg-[#2d342d] text-[#f0f4f0] rounded-lg text-center text-xl w-24 focus:outline-none focus:ring-2 focus:ring-[#4ade80] border border-[#384038]"
             />
@@ -79,26 +52,11 @@ const AmrapPage = () => {
 
         <div className="flex gap-4 flex-wrap justify-center">
           {!isRunning ? (
-            <button
-              onClick={handleStart}
-              className="px-8 py-4 bg-[#22c55e] text-white rounded-lg hover:bg-[#4ade80] active:scale-95 transition-all text-lg font-semibold min-w-[120px] shadow-lg shadow-green-900/20"
-            >
-              Start
-            </button>
+            <StartButton onClick={handleStart} />
           ) : (
-            <button
-              onClick={handlePause}
-              className="px-8 py-4 bg-[#fbbf24] text-[#1a1f1a] rounded-lg hover:bg-[#fcd34d] active:scale-95 transition-all text-lg font-semibold min-w-[120px] shadow-lg"
-            >
-              Pause
-            </button>
+            <PauseButton onClick={handlePause} />
           )}
-          <button
-            onClick={handleReset}
-            className="px-8 py-4 bg-[#384038] text-[#f0f4f0] rounded-lg hover:bg-[#434d43] active:scale-95 transition-all text-lg font-semibold min-w-[120px]"
-          >
-            Reset
-          </button>
+          <ResetButton onClick={handleReset} />
         </div>
 
         {isRunning && (
