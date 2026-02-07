@@ -10,22 +10,34 @@ const TabataPage = () => {
   const [timeRemaining, setTimeRemaining] = useState(workTime)
   const [isRunning, setIsRunning] = useState(false)
   const [isWorkPhase, setIsWorkPhase] = useState(true)
-  const audioRef = useRef<HTMLAudioElement | null>(null)
+  const audioContextRef = useRef<AudioContext | null>(null)
 
-  // Initialize audio
+  // Initialize audio context
   useEffect(() => {
-    audioRef.current = new Audio()
-    audioRef.current.src = 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBjiQ1PDImSwGJHfH79yNPwoUXLPp7axXFQpGn+Dxv28hBTiQ1PDImSwGJHfH79yNPwoUXLPp7axXFQpGn+Dx'
-    audioRef.current.volume = 0.3
+    audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)()
   }, [])
 
   const playSound = () => {
-    if (audioRef.current) {
-      audioRef.current.currentTime = 0
-      audioRef.current.play().catch(() => {
-        // Ignore errors if user hasn't interacted with page yet
-      })
-    }
+    if (!audioContextRef.current) return
+    
+    const audioContext = audioContextRef.current
+    const oscillator = audioContext.createOscillator()
+    const gainNode = audioContext.createGain()
+    
+    oscillator.connect(gainNode)
+    gainNode.connect(audioContext.destination)
+    
+    // Create a clear beep sound
+    oscillator.frequency.value = 800 // Frequency in Hz
+    oscillator.type = 'sine'
+    
+    // Volume envelope for smooth sound
+    gainNode.gain.setValueAtTime(0, audioContext.currentTime)
+    gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.01)
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5)
+    
+    oscillator.start(audioContext.currentTime)
+    oscillator.stop(audioContext.currentTime + 0.5)
   }
 
   useEffect(() => {
@@ -50,11 +62,13 @@ const TabataPage = () => {
 
   // Separate effect to handle phase transitions when time reaches 0
   useEffect(() => {
+    if(timeRemaining > 0 && timeRemaining <= 5) {
+      playSound()
+    }
     if (!isRunning || timeRemaining > 0) return
 
     if (isWorkPhase) {
       // Work phase finished, play sound
-      playSound()
       // Switch to rest phase
       setIsWorkPhase(false)
       setTimeRemaining(restTime)

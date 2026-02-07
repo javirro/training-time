@@ -48,7 +48,7 @@ export const useEmom = () => {
     if (isRunning && timeInMinute > 0) {
       interval = window.setInterval(() => {
         setTimeInMinute((prev) => {
-          if (prev === 1) {
+          if (prev > 0 && prev <= 5) {
             // Play sound when round finishes
             playSound()
             // Move to next minute
