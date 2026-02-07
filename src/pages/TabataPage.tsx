@@ -70,6 +70,7 @@ const TabataPage = () => {
   const isComplete =
     currentRound === totalRounds && !isWorkPhase && timeRemaining === 0
 
+    const disabled = workTime === 0 || restTime === 0 || totalRounds === 0
   return (
     <div className="flex min-h-screen flex-col items-center gap-6 p-4 sm:p-8">
       <HeaderPageTraining />
@@ -84,11 +85,11 @@ const TabataPage = () => {
               <span className="text-xs sm:text-sm text-[#9ca89c]">Work (sec)</span>
               <input
                 type="number"
-                min="5"
+                min="0"
                 max="120"
                 value={workTime}
                 onChange={(e) => {
-                  const val = parseInt(e.target.value) || 5
+                  const val = parseInt(e.target.value) || 0
                   setWorkTime(val)
                   setTimeRemaining(val)
                 }}
@@ -99,10 +100,10 @@ const TabataPage = () => {
               <span className="text-xs sm:text-sm text-[#9ca89c]">Rest (sec)</span>
               <input
                 type="number"
-                min="5"
+                min="0"
                 max="120"
                 value={restTime}
-                onChange={(e) => setRestTime(parseInt(e.target.value) || 5)}
+                onChange={(e) => setRestTime(parseInt(e.target.value) || 0)}
                 className="px-3 py-2 bg-[#2d342d] text-[#f0f4f0] rounded-lg text-center text-lg focus:outline-none focus:ring-2 focus:ring-[#4ade80] border border-[#384038]"
               />
             </label>
@@ -147,7 +148,7 @@ const TabataPage = () => {
 
         <div className="flex gap-4 flex-wrap justify-center">
           {!isRunning ? (
-            <StartButton onClick={handleStart} />
+            <StartButton onClick={handleStart} disabled={disabled} />
           ) : (
             <PauseButton onClick={handlePause} />
           )}

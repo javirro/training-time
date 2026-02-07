@@ -9,10 +9,11 @@ export const ResetButton = ({ onClick }: { onClick: () => void }) => {
   )
 }
 
-export const StartButton = ({ onClick }: { onClick: () => void }) => {
+export const StartButton = ({ onClick, disabled }: { onClick: () => void; disabled?: boolean }) => {
   return (
     <button
       onClick={onClick}
+      disabled={disabled}
       className="px-8 py-4 bg-[#22c55e] text-white rounded-lg hover:bg-[#4ade80] active:scale-95 transition-all text-lg font-semibold min-w-30 shadow-lg shadow-green-900/20"
     >
       Start
