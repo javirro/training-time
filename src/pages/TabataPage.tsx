@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import HeaderPageTraining from '../components/HeaderPageTraining'
 import { PauseButton, ResetButton, StartButton } from '../components/Buttons'
 import { useAudio } from '../hooks/useAudio'
+import PreStartCountdown from '../components/PreStartCountdown'
 
 const TabataPage = () => {
   const [workTime, setWorkTime] = useState(20)
@@ -11,6 +12,7 @@ const TabataPage = () => {
   const [timeRemaining, setTimeRemaining] = useState(workTime)
   const [isRunning, setIsRunning] = useState(false)
   const [isWorkPhase, setIsWorkPhase] = useState(true)
+  const [showCountdown, setShowCountdown] = useState(false)
 
   const { playSound } = useAudio()
 
@@ -55,6 +57,11 @@ const TabataPage = () => {
   }, [isRunning, isWorkPhase, currentRound, totalRounds, workTime, restTime, playSound])
 
   const handleStart = () => {
+    setShowCountdown(true)
+  }
+
+  const handleCountdownComplete = () => {
+    setShowCountdown(false)
     setIsRunning(true)
   }
 
@@ -74,6 +81,7 @@ const TabataPage = () => {
   const disabled = workTime === 0 || restTime === 0 || totalRounds === 0
   return (
     <div className="flex min-h-screen flex-col items-center gap-6 p-4 sm:p-8">
+      {showCountdown && <PreStartCountdown onComplete={handleCountdownComplete} />}
       <HeaderPageTraining />
 
       {!isRunning && currentRound === 1 && isWorkPhase && timeRemaining === workTime && (

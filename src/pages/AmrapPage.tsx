@@ -1,8 +1,10 @@
+import { useState } from 'react'
 import { formatTimeToShow } from '../lib/formatTimeToShow'
 import HeaderPageTraining from '../components/HeaderPageTraining'
 import { useAmramp } from '../hooks/useAmramp'
 import { PauseButton, ResetButton, StartButton } from '../components/Buttons'
 import TimeShow from '../components/TimeShow'
+import PreStartCountdown from '../components/PreStartCountdown'
 
 const AmrapPage = () => {
   const {
@@ -10,15 +12,27 @@ const AmrapPage = () => {
     timeRemaining,
     isRunning,
     rounds,
-    handleStart,
+    handleStart: startTimer,
     handlePause,
     handleReset,
     handleRoundComplete,
     handleUpdateTimeLimit,
   } = useAmramp()
 
+  const [showCountdown, setShowCountdown] = useState(false)
+
+  const handleStart = () => {
+    setShowCountdown(true)
+  }
+
+  const handleCountdownComplete = () => {
+    setShowCountdown(false)
+    startTimer()
+  }
+
   return (
     <div className="flex min-h-screen flex-col items-center  gap-6 p-4 sm:p-8">
+      {showCountdown && <PreStartCountdown onComplete={handleCountdownComplete} />}
       <HeaderPageTraining />
 
       {!isRunning && timeRemaining === timeLimit * 60 && (

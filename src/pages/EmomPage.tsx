@@ -1,7 +1,9 @@
+import { useState } from 'react'
 import { PauseButton, ResetButton, StartButton } from '../components/Buttons'
 import HeaderPageTraining from '../components/HeaderPageTraining'
 import TimeShow from '../components/TimeShow'
 import { useEmom } from '../hooks/useEmom'
+import PreStartCountdown from '../components/PreStartCountdown'
 
 const EmomPage = () => {
   const {
@@ -9,16 +11,28 @@ const EmomPage = () => {
     currentMinute,
     timeInMinute,
     isRunning,
-    handleStart,
+    handleStart: startTimer,
     handlePause,
     handleReset,
     handleUpdateDuration,
   } = useEmom()
 
+  const [showCountdown, setShowCountdown] = useState(false)
+
+  const handleStart = () => {
+    setShowCountdown(true)
+  }
+
+  const handleCountdownComplete = () => {
+    setShowCountdown(false)
+    startTimer()
+  }
+
   const isComplete = currentMinute === duration && timeInMinute === 0
 
   return (
     <div className="flex min-h-screen flex-col items-center  gap-6 p-4 sm:p-8">
+      {showCountdown && <PreStartCountdown onComplete={handleCountdownComplete} />}
       <HeaderPageTraining />
 
       {!isRunning && currentMinute === 1 && timeInMinute === 60 && (
