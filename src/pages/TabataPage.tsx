@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import HeaderPageTraining from '../components/HeaderPageTraining'
 import { PauseButton, ResetButton, StartButton } from '../components/Buttons'
+import { useAudio } from '../hooks/useAudio'
 
 const TabataPage = () => {
   const [workTime, setWorkTime] = useState(20)
@@ -10,47 +11,40 @@ const TabataPage = () => {
   const [timeRemaining, setTimeRemaining] = useState(workTime)
   const [isRunning, setIsRunning] = useState(false)
   const [isWorkPhase, setIsWorkPhase] = useState(true)
-  const audioContextRef = useRef<AudioContext | null>(null)
 
-  // Initialize audio context
-  useEffect(() => {
-    audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)()
-  }, [])
-
-  const playSound = () => {
-    if (!audioContextRef.current) return
-    
-    const audioContext = audioContextRef.current
-    const oscillator = audioContext.createOscillator()
-    const gainNode = audioContext.createGain()
-    
-    oscillator.connect(gainNode)
-    gainNode.connect(audioContext.destination)
-    
-    // Create a clear beep sound
-    oscillator.frequency.value = 800 // Frequency in Hz
-    oscillator.type = 'sine'
-    
-    // Volume envelope for smooth sound
-    gainNode.gain.setValueAtTime(0, audioContext.currentTime)
-    gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.01)
-    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5)
-    
-    oscillator.start(audioContext.currentTime)
-    oscillator.stop(audioContext.currentTime + 0.5)
-  }
+  const { playSound } = useAudio()
 
   useEffect(() => {
     let interval: number | undefined
 
-    if (isRunning && timeRemaining > 0) {
+    if (isRunning) {
       interval = setInterval(() => {
         setTimeRemaining((prev) => {
           if (prev > 1) {
+            if (prev <= 6) playSound() // Play sound when time is about to run out
             return prev - 1
           }
-          // When timer reaches 0, handle phase transitions
-          return 0
+
+          // Timer reached 0, handle phase transitions
+          if (isWorkPhase) {
+            // Work phase finished, switch to rest phase
+            playSound()
+            setIsWorkPhase(false)
+            return restTime
+          } else {
+            // Rest phase finished
+            playSound()
+            if (currentRound < totalRounds) {
+              // Move to next round
+              setIsWorkPhase(true)
+              setCurrentRound((r) => r + 1)
+              return workTime
+            } else {
+              // Workout complete
+              setIsRunning(false)
+              return 0
+            }
+          }
         })
       }, 1000)
     }
@@ -58,34 +52,7 @@ const TabataPage = () => {
     return () => {
       if (interval) clearInterval(interval)
     }
-  }, [isRunning, timeRemaining])
-
-  // Separate effect to handle phase transitions when time reaches 0
-  useEffect(() => {
-    if(timeRemaining > 0 && timeRemaining <= 5) {
-      playSound()
-    }
-    if (!isRunning || timeRemaining > 0) return
-
-    if (isWorkPhase) {
-      // Work phase finished, play sound
-      // Switch to rest phase
-      setIsWorkPhase(false)
-      setTimeRemaining(restTime)
-    } else {
-      // Rest phase finished, play sound
-      playSound()
-      // Switch to work phase or end
-      if (currentRound < totalRounds) {
-        setIsWorkPhase(true)
-        setCurrentRound((prev) => prev + 1)
-        setTimeRemaining(workTime)
-      } else {
-        // Workout complete
-        setIsRunning(false)
-      }
-    }
-  }, [timeRemaining, isRunning, isWorkPhase, currentRound, totalRounds, workTime, restTime])
+  }, [isRunning, isWorkPhase, currentRound, totalRounds, workTime, restTime, playSound])
 
   const handleStart = () => {
     setIsRunning(true)
@@ -102,19 +69,16 @@ const TabataPage = () => {
     setTimeRemaining(workTime)
   }
 
-  const isComplete =
-    currentRound === totalRounds && !isWorkPhase && timeRemaining === 0
+  const isComplete = currentRound === totalRounds && !isWorkPhase && timeRemaining === 0
 
-    const disabled = workTime === 0 || restTime === 0 || totalRounds === 0
+  const disabled = workTime === 0 || restTime === 0 || totalRounds === 0
   return (
     <div className="flex min-h-screen flex-col items-center gap-6 p-4 sm:p-8">
       <HeaderPageTraining />
 
       {!isRunning && currentRound === 1 && isWorkPhase && timeRemaining === workTime && (
         <div className="flex flex-col gap-4 items-center w-full max-w-md">
-          <h3 className="text-lg sm:text-xl font-semibold text-[#d1d9d1] text-center">
-            Configure Tabata
-          </h3>
+          <h3 className="text-lg sm:text-xl font-semibold text-[#d1d9d1] text-center">Configure Tabata</h3>
           <div className="grid grid-cols-3 gap-4 w-full">
             <label className="flex flex-col gap-2 text-center">
               <span className="text-xs sm:text-sm text-[#9ca89c]">Work (sec)</span>
@@ -149,7 +113,7 @@ const TabataPage = () => {
                 min="1"
                 max="20"
                 value={totalRounds}
-                onChange={(e) => setTotalRounds(parseInt(e.target.value) || 1)}
+                onChange={(e) => setTotalRounds(parseInt(e.target.value) || 0)}
                 className="px-3 py-2 bg-[#2d342d] text-[#f0f4f0] rounded-lg text-center text-lg focus:outline-none focus:ring-2 focus:ring-[#4ade80] border border-[#384038]"
               />
             </label>
@@ -159,34 +123,21 @@ const TabataPage = () => {
 
       <div className="flex flex-col items-center gap-6 w-full max-w-md">
         <div className="text-xl sm:text-2xl font-semibold text-[#d1d9d1]">
-          Round: <span className="text-[#4ade80]">{currentRound}</span> /{' '}
-          {totalRounds}
+          Round: <span className="text-[#4ade80]">{currentRound}</span> / {totalRounds}
         </div>
 
-        <div
-          className={`text-9xl font-bold tabular-nums transition-colors ${
-            isWorkPhase ? 'text-[#4ade80]' : 'text-[#fbbf24]'
-          }`}
-        >
-          {timeRemaining}
-        </div>
+        <div className={`text-9xl font-bold tabular-nums transition-colors ${isWorkPhase ? 'text-[#4ade80]' : 'text-[#fbbf24]'}`}>{timeRemaining}</div>
 
         <div className="text-2xl sm:text-3xl font-bold">
           {isComplete ? (
             <span className="text-[#22c55e]">Complete! 🎉</span>
           ) : (
-            <span className={isWorkPhase ? 'text-[#4ade80]' : 'text-[#fbbf24]'}>
-              {isWorkPhase ? 'WORK' : 'REST'}
-            </span>
+            <span className={isWorkPhase ? 'text-[#4ade80]' : 'text-[#fbbf24]'}>{isWorkPhase ? 'WORK' : 'REST'}</span>
           )}
         </div>
 
         <div className="flex gap-4 flex-wrap justify-center">
-          {!isRunning ? (
-            <StartButton onClick={handleStart} disabled={disabled} />
-          ) : (
-            <PauseButton onClick={handlePause} />
-          )}
+          {!isRunning ? <StartButton onClick={handleStart} disabled={disabled} /> : <PauseButton onClick={handlePause} />}
           <ResetButton onClick={handleReset} />
         </div>
       </div>
