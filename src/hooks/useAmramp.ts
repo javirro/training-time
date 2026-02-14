@@ -1,11 +1,19 @@
 import { useEffect, useState } from 'react'
 
 export const useAmramp = () => {
+  const [timeUnit, setTimeUnit] = useState<'minutes' | 'seconds'>('minutes')
   const [timeLimit, setTimeLimit] = useState(10)
   const [timeRemaining, setTimeRemaining] = useState(timeLimit * 60)
   const [isRunning, setIsRunning] = useState(false)
   const [rounds, setRounds] = useState(0)
   const TIME_GRANULARITY = 1000 // 1 second
+
+  useEffect(() => {
+    function updateRemainingTime() {
+      setTimeRemaining(timeUnit === 'minutes' ? timeLimit * 60 : timeLimit)
+    }
+    updateRemainingTime()
+  }, [timeUnit, timeLimit]) // Reset time limit when time unit changes
 
   useEffect(() => {
     let interval: number | undefined
@@ -38,7 +46,7 @@ export const useAmramp = () => {
 
   const handleReset = () => {
     setIsRunning(false)
-    setTimeRemaining(timeLimit * 60)
+    setTimeRemaining(timeUnit === 'minutes' ? timeLimit * 60 : timeLimit)
     setRounds(0)
   }
 
@@ -48,10 +56,11 @@ export const useAmramp = () => {
 
   const handleUpdateTimeLimit = (newLimit: number) => {
     setTimeLimit(newLimit)
-    setTimeRemaining(newLimit * 60)
+    setTimeRemaining(timeUnit === 'minutes' ? newLimit * 60 : newLimit)
   }
 
   return {
+    timeUnit,
     timeLimit,
     timeRemaining,
     isRunning,
@@ -60,6 +69,7 @@ export const useAmramp = () => {
     handlePause,
     handleReset,
     handleRoundComplete,
-    handleUpdateTimeLimit
+    handleUpdateTimeLimit,
+    setTimeUnit
   }
 }
