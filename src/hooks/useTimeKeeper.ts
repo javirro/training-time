@@ -1,16 +1,21 @@
 import { useEffect, useState } from 'react'
+import { getStartTime, setStartTime, clearStartTime } from '../lib/localstorage'
 
 export const useTimeKeeper = () => {
   const [time, setTime] = useState(0)
   const [isRunning, setIsRunning] = useState(false)
-  const TIME_GRANULARITY = 1000 // 1 second
+  const TIME_GRANULARITY = 100 // 100ms for smoother updates
 
   useEffect(() => {
     let interval: number | undefined
 
     if (isRunning) {
       interval = window.setInterval(() => {
-        setTime((prev) => prev + 1)
+        const startTime = getStartTime()
+        if (startTime) {
+          const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000)
+          setTime(elapsedSeconds)
+        }
       }, TIME_GRANULARITY)
     }
 
@@ -21,6 +26,7 @@ export const useTimeKeeper = () => {
 
   const handleStart = () => {
     setIsRunning(true)
+    setStartTime(Date.now())
   }
 
   const handlePause = () => {
@@ -30,6 +36,7 @@ export const useTimeKeeper = () => {
   const handleReset = () => {
     setIsRunning(false)
     setTime(0)
+    clearStartTime()
   }
 
   return {

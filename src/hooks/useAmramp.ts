@@ -1,4 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
+import { clearStartTime, setStartTime, getStartTime } from '../lib/localstorage'
+import { useAudio } from './useAudio'
 
 export const useAmramp = () => {
   const [timeUnit, setTimeUnit] = useState<'minutes' | 'seconds'>('minutes')
@@ -6,11 +8,17 @@ export const useAmramp = () => {
   const [timeRemaining, setTimeRemaining] = useState(timeLimit * 60)
   const [isRunning, setIsRunning] = useState(false)
   const [rounds, setRounds] = useState(0)
-  const TIME_GRANULARITY = 1000 // 1 second
+  const [initialTimeLimit, setInitialTimeLimit] = useState(timeLimit * 60)
+  const TIME_GRANULARITY = 100 // 100ms for smoother updates
+  const previousSecondRef = useRef<number>(0)
+
+  const { playSound } = useAudio()
 
   useEffect(() => {
     function updateRemainingTime() {
-      setTimeRemaining(timeUnit === 'minutes' ? timeLimit * 60 : timeLimit)
+      const newTimeLimit = timeUnit === 'minutes' ? timeLimit * 60 : timeLimit
+      setTimeRemaining(newTimeLimit)
+      setInitialTimeLimit(newTimeLimit)
     }
     updateRemainingTime()
   }, [timeUnit, timeLimit]) // Reset time limit when time unit changes
@@ -18,36 +26,50 @@ export const useAmramp = () => {
   useEffect(() => {
     let interval: number | undefined
 
-    if (isRunning && timeRemaining > 0) {
+    if (isRunning) {
       interval = setInterval(() => {
-        // If time runs out, stop the timer and reset remaining time to 0, otherwise just decrease it by 1 second
-        setTimeRemaining((prev) => {
-          if (prev <= 1) {
-            setIsRunning(false)
-            return 0
+        const startTime = getStartTime()
+        if (startTime) {
+          const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000)
+          const remaining = Math.max(0, initialTimeLimit - elapsedSeconds)
+
+          setTimeRemaining(remaining)
+
+          // Only play sound when the second actually changes
+          if (remaining !== previousSecondRef.current && remaining <= 5 && remaining > 0) {
+            playSound()
           }
-          return prev - 1
-        })
+          previousSecondRef.current = remaining
+
+          if (remaining <= 0) {
+            setIsRunning(false)
+            clearStartTime()
+          }
+        }
       }, TIME_GRANULARITY)
     }
 
     return () => {
       if (interval) clearInterval(interval)
     }
-  }, [isRunning, timeRemaining])
+  }, [isRunning, initialTimeLimit, playSound])
 
   const handleStart = () => {
     setIsRunning(true)
+    setStartTime(Date.now())
+    setInitialTimeLimit(timeRemaining)
   }
 
   const handlePause = () => {
     setIsRunning(false)
   }
-
+  
   const handleReset = () => {
+    clearStartTime()
     setIsRunning(false)
     setTimeRemaining(timeUnit === 'minutes' ? timeLimit * 60 : timeLimit)
     setRounds(0)
+    previousSecondRef.current = 0
   }
 
   const handleRoundComplete = () => {
